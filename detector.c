@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 #include <time.h>
 
 bool printReturnCode=false;
@@ -15,8 +17,30 @@ int interval=10000;//in millis
 char timeFormat[100];
 int limitOfIterations=0;//0 for infinity
 
+int runCommand(char *command);
 
-
+int runCommand(char *command){
+    int pid=fork();
+    if(pid==0){
+        printf("run command\n");
+        execlp("/bin/sh","sh", "-c", command, NULL);
+        // execvp(, command);
+        // printf("run \"%s\"\n", command);
+        // execvp()
+        // exit(3);
+    }else if(pid==-1){
+        exit(-1);
+    }else
+    {
+        int status;
+        wait(&status);
+        if(WIFEXITED(status)){
+            printf("child exits with status %d\n", WEXITSTATUS(status));
+            return WEXITSTATUS(status);
+        }
+    }
+    
+}
 int main(int argc, char *argv[])
 {
     fclose(stderr);
@@ -74,8 +98,9 @@ int main(int argc, char *argv[])
     for(int i=0;i<length;i++){
         sprintf(command, "%s %s", command, argv2[i+progStartIndex]);
     }
-    printf("command to execute: %s\n", command);
-    progStartIndex=optind;
+    printf("command: %s\n", command);
+
+    // progStartIndex=optind;
     int counter=0;
     while(counter<limitOfIterations || limitSet==false){
         if(timeFormatSet){
@@ -85,6 +110,7 @@ int main(int argc, char *argv[])
             strftime(currentTime, 100, timeFormat, locTime);
             printf("currentTime - %s\n", currentTime);
         }
+        runCommand(command);
         usleep(interval*1000);
         counter++;
     }
