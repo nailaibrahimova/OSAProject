@@ -71,24 +71,28 @@ int main(int argc, char *argv[])
                 break;
         }
     }
-    for(int i=0;i<argc;i++){
-        printf("i=%d, argv2[%d]=%s\n", i, i, argv2[i]);
-    }
-    // printf("\noptind=%d\n", optind);
+    // for(int i=0;i<argc;i++){
+    //     printf("i=%d, argv2[%d]=%s\n", i, i, argv2[i]);
+    // }
+    // // printf("\noptind=%d\n", optind);
+    // printf("argc=%d\tprogStartIndex=%d\n\n", argc, progStartIndex);
+    // printf("argv[%d]=%s\n", progStartIndex, argv[progStartIndex]);
     progStartIndex=optind;
-    printf("argc=%d\tprogStartIndex=%d\n\n", argc, progStartIndex);
-    printf("argv[%d]=%s\n", progStartIndex, argv[progStartIndex]);
     int length=argc-progStartIndex;
-    char *args[length];
+    // char *args[length];
+    char command[256];
     int index=0;
-    for(int i=0;i<length;i++) args[i]=calloc(100,sizeof(char));
+    // for(int i=0;i<length;i++) args[i]=calloc(100,sizeof(char));
     for(int i=0;i<length;i++){
         // printf("argv2[%d]=%s\n", i, argv2[i]);
-        strcpy(args[i], argv2[i+progStartIndex]);
+        sprintf(command, "%s %s", command, argv2[i+progStartIndex]);
+        
+        // strcpy(args[i], argv2[i+progStartIndex]);
         // printf("args[%d]=%s\n", i, args[i]);
     }
     printf("----------------args----------------------\n");
-    for(int i=0;i<length;i++) printf("args[%d]=%s\n", i, args[i]);
+    printf("ommand: %s\n", command);
+    // for(int i=0;i<length;i++) printf("args[%d]=%s\n", i, args[i]);
     return 0;
 }
 

@@ -23,28 +23,41 @@ int main(int argc, char *argv[])
     int progStartIndex=-1;
     int opt=-1;
     // dub2(, 2);
-    while((opt=getopt(argc, argv, "ci:t:l:"))!=-1){
-        // printf("in while\n");
+    char **argv2=calloc(argc, sizeof(char *));
+    for(int i=0;i<argc;i++){
+        argv2[i]=calloc(100, sizeof(char));
+        strcpy(argv2[i], argv[i]);
+    }
+    while((opt=getopt(argc, argv, "+ci:t:l:"))!=-1){
+    // printf("in while\n");
         switch (opt)
         {
             case 'c':
-                printReturnCode=true;
-                printf("print Return code true\n");
+                if(printReturnCode==false){
+                    printReturnCode=true;
+                    printf("print Return code true\n");
+                }
                 break;
             case 'i':
-                interval=atoi(argv[optind-1]);
-                intervalSet=true;
-                printf("Set interval to %d\n", interval);
+                if(intervalSet==false){
+                    interval=atoi(argv[optind-1]);
+                    intervalSet=true;
+                    printf("Set interval to %d\n", interval);
+                }
                 break;
             case 't':
-                timeFormatSet=true;
-                strcpy(timeFormat, argv[optind-1]);
-                printf("Set time format to %s\n", timeFormat);
+                if(timeFormatSet==false){
+                    timeFormatSet=true;
+                    strcpy(timeFormat, argv[optind-1]);
+                    printf("Set time format to %s\n", timeFormat);
+                }
                 break;
             case 'l':
+            if(limitSet==false){
                 limitSet=true;
                 limitOfIterations=atoi(argv[optind-1]);
                 printf("Set limit to %d\n", limitOfIterations);
+            }
                 break;
             case '?':
                 printf("Option is needed\n");
@@ -55,6 +68,13 @@ int main(int argc, char *argv[])
         }
     }
     // printf("optind %d\n", optind);
+    progStartIndex=optind;
+    int length=argc-progStartIndex;
+    char command[256];
+    for(int i=0;i<length;i++){
+        sprintf(command, "%s %s", command, argv2[i+progStartIndex]);
+    }
+    printf("command to execute: %s\n", command);
     progStartIndex=optind;
     int counter=0;
     while(counter<limitOfIterations || limitSet==false){
