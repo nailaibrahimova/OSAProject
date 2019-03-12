@@ -22,6 +22,10 @@ char *previousOutput;
 
 int runCommand(char *command);
 
+void usage(char *progname){
+    fprintf(stderr, "usage:\n %s [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg\n", progname);
+}
+
 int runCommand(char *command){
     int outputSize=MAXSIZE+1;
     char *outputString=calloc(outputSize, sizeof(char));
@@ -78,7 +82,7 @@ int runCommand(char *command){
                     exit(0);
                 }
                 strcpy(previousOutput, outputString);
-                printf("%s\n", outputString);
+                printf("%s", outputString);
                 // printf("exit %d\n", WEXITSTATUS(status));
             }
         }
@@ -87,6 +91,10 @@ int runCommand(char *command){
 }
 int main(int argc, char *argv[])
 {
+    if(argc==1){
+        usage(argv[0]);
+        exit(1);
+    }
     int progStartIndex=-1;
     int opt=-1;
     char **argv2=calloc(argc, sizeof(char *));
@@ -115,6 +123,10 @@ int main(int argc, char *argv[])
                 if(intervalSet==false){
                     // interval=atoi(argv[optind-1]);
                     interval=atoi(optarg);
+                    if(interval <=0){
+                        usage(argv[0]);
+                        exit(1);
+                    }
                     intervalSet=true;
                     // printf("Set interval to %d\n", interval);
                 }
@@ -129,22 +141,33 @@ int main(int argc, char *argv[])
                 break;
             case 'l':
             if(limitSet==false){
+                // printf("Set limit to %d\n", limitOfIterations);
                 limitSet=true;
                 // limitOfIterations=atoi(argv[opind-1]);
                 limitOfIterations=atoi(optarg);
-                // printf("Set limit to %d\n", limitOfIterations);
+                if(limitOfIterations<0){
+                    usage(argv[0]);
+                    exit(1);
+                }
             }
                 break;
             case '?':
                 // printf("Option is needed\n");
-                exit(0);
+                usage(argv[0]);
+                exit(1);
                 break;            
             default:
+                usage(argv[0]);
+                exit(1);
                 // printf("default\n");
                 break;
         }
     }
     progStartIndex=optind;
+    if(optind==argc){
+        usage(argv[0]);
+        exit(1);
+    }
     int length=argc-progStartIndex;
     char command[256];
     for(int i=0;i<length;i++){
