@@ -1,0 +1,21 @@
++ DN=/dev/null
++ ./detecter
+usage:
+ ./detecter [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg
++ ./detecter -i1 -l 1 cat /dev/null
++ ./detecter -l1 -i 1 cat /dev/null
++ ./detecter -i 0 cat /dev/null
+usage:
+ ./detecter [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg
++ ./detecter -i -1 cat /dev/null
+usage:
+ ./detecter [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg
++ ./detecter -l -1 cat /dev/null
+usage:
+ ./detecter [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg
++ ./detecter -i1 -l1
+usage:
+ ./detecter [-t format ] [-i interval ] [ -l limit ] [-c ] prog arg ...arg
++ ./detecter -c -i1 -l1 cat /dev/null
++ ./detecter -t %S -c -i1 -l1 cat /dev/null
++ exit 0
