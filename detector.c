@@ -19,6 +19,8 @@ int interval=10000;//in millis
 char timeFormat[100];
 int limitOfIterations=0;//0 for infinity
 char *previousOutput;
+int prevOutputSize=0;
+int prevExitStatus=0;
 
 int runCommand(char *command);
 
@@ -27,7 +29,7 @@ void usage(char *progname){
 }
 
 int runCommand(char *command){
-    int outputSize=MAXSIZE+1;
+    int outputSize=MAXSIZE;
     char *outputString=calloc(outputSize, sizeof(char));
     if(outputString==NULL){
         perror("calloc");
@@ -50,40 +52,38 @@ int runCommand(char *command){
         exit(0);
     }else
     {   close(pipes[1]);
-        char *readChar=calloc(1024+1, sizeof(char));
+        char *readChar=calloc(1024, sizeof(char));
         if(readChar==NULL){
             perror("Calloc");
             exit(0);
         }
         int nbBytes=0;
         int nbRead=0;
-        while((nbBytes=read(pipes[0], readChar, 1024))>0){
+        while((nbBytes=read(pipes[0], outputString+nbRead, 1024))!=0){
             nbRead+=nbBytes;
-            if(nbRead>outputSize){
-                outputSize=nbRead+1;
+            if(nbRead>=outputSize){
+                outputSize=nbRead+1024;
                 outputString=realloc(outputString, outputSize);
                 if(outputString==NULL){
                     perror("Realloc");
                     exit(0);
                 }
             }
-            strcat(outputString, readChar);
-            memset(readChar, 0, 1025);
         }
-
         int status;
         wait(&status);
         if(WIFEXITED(status)){
-            if(strcmp(previousOutput, outputString)==0){
+            if(memcmp(previousOutput, outputString, nbRead)==0){
             }else{
-                previousOutput=calloc(outputSize, sizeof(char));
+                previousOutput=calloc(nbRead, sizeof(char));
+                prevOutputSize=nbRead;
                 if(previousOutput==NULL){
                     perror("Calloc");
                     exit(0);
                 }
-                strcpy(previousOutput, outputString);
-                printf("%s", outputString);
-                // printf("exit %d\n", WEXITSTATUS(status));
+                memcpy(previousOutput, outputString,nbRead);
+                // printf("%s", outputString);
+                write(1, outputString, nbRead);
             }
         }
         return WEXITSTATUS(status);
@@ -141,9 +141,7 @@ int main(int argc, char *argv[])
                 break;
             case 'l':
             if(limitSet==false){
-                // printf("Set limit to %d\n", limitOfIterations);
                 limitSet=true;
-                // limitOfIterations=atoi(argv[opind-1]);
                 limitOfIterations=atoi(optarg);
                 if(limitOfIterations<0){
                     usage(argv[0]);
@@ -152,14 +150,12 @@ int main(int argc, char *argv[])
             }
                 break;
             case '?':
-                // printf("Option is needed\n");
                 usage(argv[0]);
                 exit(1);
                 break;            
             default:
                 usage(argv[0]);
                 exit(1);
-                // printf("default\n");
                 break;
         }
     }
@@ -174,10 +170,11 @@ int main(int argc, char *argv[])
         sprintf(command, "%s %s", command, argv2[i+progStartIndex]);
     }
 
-    previousOutput=calloc(MAXSIZE+1, sizeof(char));
+    previousOutput=calloc(MAXSIZE, sizeof(char));
+    prevOutputSize=MAXSIZE;
     if(previousOutput==NULL){
         perror("Calloc");
-        exit(0);
+        exit(1);
     }
     int counter=0;
     while(counter<limitOfIterations || limitSet==false){
@@ -186,10 +183,15 @@ int main(int argc, char *argv[])
             time_t curTime=time(NULL);
             struct tm* locTime=localtime(&curTime);
             strftime(currentTime, 100, timeFormat, locTime);
-            printf("%s\n", currentTime);
+            sprintf(currentTime, "%s\n", currentTime);
+            write(1, currentTime, strlen(currentTime));
         }
         int exitStatus=runCommand(command);
-        if(printReturnCode==true) printf("exit %d\n", exitStatus);
+        if(printReturnCode==true){
+                char exString[100];
+                sprintf(exString , "exit %d\n", exitStatus);
+                write(1, exString, strlen(exString));
+        }
         usleep(interval*1000);
         counter++;
     }
